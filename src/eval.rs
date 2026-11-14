@@ -67,7 +67,9 @@ pub fn eval(env: &Env, term: &Term) -> Result<Term, String> {
                             PrimOp::Add => n1 + n2,
                             PrimOp::Sub => n1 - n2,
                             PrimOp::Mul => n1 * n2,
-                            PrimOp::Div => n1 / n2, // TODO: handle division by zero and add a test
+                            PrimOp::Div => {if *n2==0{
+                            return Err(String::from("division by zero"))} else {n1/n2}
+                                    },// handle division by zero and add a test
                             _ => unreachable!()
                         }))
                     } else {
@@ -292,6 +294,19 @@ mod tests {
         let term = app(abs("x", app(abs("y", var("y")), var("x"))), var("z"));
         let evaluated = eval(&empty_env(), &term).unwrap();
         let expected = var("z");
+        assert_eq!(evaluated, expected);
+    }
+    #[test]
+    fn test_division_by_zero() {
+        let evaluated = eval(&empty_env(), &primop(PrimOp::Div, i(4),i(0)));
+        let expected =Err(String::from("division by zero"));
+        assert_eq!(evaluated, expected);
+    }
+
+    #[test]
+    fn test_division_normal() {
+        let evaluated = eval(&empty_env(), &primop(PrimOp::Div, i(4),i(2)));
+        let expected =Ok(i(2));
         assert_eq!(evaluated, expected);
     }
 }
